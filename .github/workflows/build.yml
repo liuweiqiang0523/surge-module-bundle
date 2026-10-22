@@ -1,0 +1,15 @@
+name: build-surge-bundle
+on:
+  schedule:
+    - cron: "0 19 * * *"   # UTC 19:00 = 北京时间 03:00
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & update gist
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: python3 build.py
