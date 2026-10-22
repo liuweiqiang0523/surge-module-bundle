@@ -69,7 +69,13 @@ def build(urls):
                 if s.strip().startswith("#"): continue
                 if sec == "MITM":
                     if s.strip().lower().startswith("hostname"):
-                        for h in [x.strip() for x in s.split("=", 1)[1].replace("%APPEND%", "").split(",") if x.strip()]:
+                        raw = s.split("=", 1)[1]
+                        for tok in ("%APPEND%", "%INSERT%", "%REPLACE%"):
+                            raw = raw.replace(tok, "")
+                        for h in [x.strip() for x in re.split(r"[,\s]+", raw) if x.strip()]:
+                            # 过滤非法条目：含 % 或空白、非 hostname 字符
+                            if "%" in h or not re.fullmatch(r"[A-Za-z0-9*?_.:\-\[\]/]+", h):
+                                continue
                             if h not in seenh: seenh.add(h); hosts.append(h)
                     continue
                 if sec == "Script":
