@@ -3,13 +3,18 @@ on:
   schedule:
     - cron: "0 19 * * *"   # UTC 19:00 = 北京时间 03:00
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build & update gist
-        env:
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      - name: Build
         run: python3 build.py
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions"
+          git config user.email "actions@github.com"
+          git add EgernSync.sgmodule
+          if git diff --cached --quiet; then echo "no change"; else git commit -m "auto: rebuild bundle $(date -u +%FT%TZ)" && git push; fi

@@ -57,6 +57,7 @@ def build(urls):
         for l in body.split("\n"):
             if re.match(r"^#!arguments\s*=", l):
                 args = parse_args(l.split("=", 1)[1])
+        body = body.replace("https://kelee.one/Resource/", "https://hub.kelee.one/Resource/")
         for sec, lines in parse_sections(body).items():
             if sec == "General": continue
             for line in lines:
@@ -92,15 +93,8 @@ def main():
     content, failed, n_scripts, n_hosts, n_rules = build(urls)
     open(FILENAME, "w", encoding="utf-8").write(content)
     print(f"built: {len(content)} bytes, scripts={n_scripts}, hosts={n_hosts}, rules={n_rules}")
-    for u, e in failed: print("FAILED:", u, e)
-    if not GIST_ID or not TOKEN:
-        print("skip gist update (no GIST_ID/GIST_TOKEN)"); return 0
-    payload = json.dumps({"files": {FILENAME: {"content": content}}}).encode()
-    req = urllib.request.Request(f"https://api.github.com/gists/{GIST_ID}", data=payload, method="PATCH",
-                                 headers={"Authorization": f"Bearer {TOKEN}", "Accept": "application/vnd.github+json",
-                                          "Content-Type": "application/json", "User-Agent": "surge-bundle"})
-    with urllib.request.urlopen(req, timeout=45) as r:
-        print("gist updated:", r.status)
+    for u, e in failed:
+        print("FAILED:", u, e)
     return 0
 
 if __name__ == "__main__":
